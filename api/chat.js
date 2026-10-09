@@ -22,10 +22,18 @@ export default async function handler(req, res) {
         });
 
         const data = await response.json();
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Maaf, Versa tidak mendapatkan respons.';
+        
+        // Cek struktur data balasan dari Gemini dengan aman
+        if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
+            const reply = data.candidates[0].content.parts[0].text;
+            return res.status(200).json({ reply });
+        } else {
+            console.error('API Response Error:', JSON.stringify(data));
+            return res.status(200).json({ reply: 'Respon dari Gemini tidak valid atau dibatasi.' });
+        }
 
-        return res.status(200).json({ reply });
     } catch (error) {
+        console.error('Server Error:', error);
         return res.status(500).json({ reply: 'Terjadi kesalahan pada server Versa.' });
     }
 }
