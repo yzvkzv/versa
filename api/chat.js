@@ -11,31 +11,32 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Menggunakan model gemini-1.5-pro atau model stabil lainnya
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
+        const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{
+                    role: "user",
                     parts: [{ text: message }]
                 }]
             })
         });
 
-        const data = await response.json();
-        
+        const data = await apiResponse.json();
+
         if (data.error) {
-            return res.status(200).json({ reply: `Error dari Google: ${data.error.message}` });
+            return res.status(200).json({ reply: `Google API Error: ${data.error.message}` });
         }
 
-        if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
-            const reply = data.candidates[0].content.parts[0].text;
+        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (reply) {
             return res.status(200).json({ reply });
         } else {
-            return res.status(200).json({ reply: 'Struktur respons tidak dikenali.' });
+            return res.status(200).json({ reply: 'Format respons tidak dikenali oleh server.' });
         }
 
-    }ukasz (error) {
-        return res.status(500).json({ reply: 'Gagal terhubung ke server API.' });
+    } catch (err) {
+        return res.status(200).json({ reply: `Terjadi kendala server: ${err.message}` });
     }
 }
