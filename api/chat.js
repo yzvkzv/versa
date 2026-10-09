@@ -23,17 +23,18 @@ export default async function handler(req, res) {
 
         const data = await response.json();
         
-        // Cek struktur data balasan dari Gemini dengan aman
+        if (data.error) {
+            return res.status(200).json({ reply: `Error dari Google: ${data.error.message}` });
+        }
+
         if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
             const reply = data.candidates[0].content.parts[0].text;
             return res.status(200).json({ reply });
         } else {
-            console.error('API Response Error:', JSON.stringify(data));
-            return res.status(200).json({ reply: 'Respon dari Gemini tidak valid atau dibatasi.' });
+            return res.status(200).json({ reply: 'Struktur respons tidak dikenali.' });
         }
 
     } catch (error) {
-        console.error('Server Error:', error);
-        return res.status(500).json({ reply: 'Terjadi kesalahan pada server Versa.' });
+        return res.status(500).json({ reply: 'Gagal terhubung ke server API.' });
     }
 }
